@@ -29,10 +29,10 @@ fn main() {
         if !buf.contains(&header[2]) {
             continue;
         }
-        if let Some(pos) = find_index_by_windowing(&buf, &header) {
+        if let Some(pos) = compare_headers(&buf, &header) {
             println!("pos = {}", pos);
-            println!("{:X?} contains jpg headers!", buf);
-            let mut fnew = File::create(format!("recovered-{}.jpg", recovered_count)).unwrap();
+            // println!("{:X?} pattern found", buf);
+            let mut fnew = File::create(format!("recovered-{}.png", recovered_count)).unwrap();
             fnew.write_all(&buf[pos..]).unwrap();
             while let Ok(_) = f.read_exact(&mut buf) {
                 if let Some(pos) = find_index_by_windowing(&buf, &end) {
@@ -60,6 +60,15 @@ fn find_index_by_windowing(array: &[u8], sub_array: &[u8]) -> Option<usize> {
     array
         .windows(sub_array.len())
         .position(|data| data == sub_array)
+}
+fn compare_headers(array: &[u8], sub_array: &[u8]) -> Option<usize> {
+    let mut sub_iter = sub_array.iter();
+    for element in &array[0..sub_array.len() - 1] {
+        if element != sub_iter.next()? {
+            return None;
+        }
+    }
+    Some(0)
 }
 
 #[cfg(test)]
