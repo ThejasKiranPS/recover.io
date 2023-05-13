@@ -1,11 +1,19 @@
-use std::{time::Instant, fs::{DirBuilder, File}, io::{Read, Write}};
+use std::{
+    fs::{DirBuilder, File},
+    io::{Read, Write},
+    time::Instant,
+};
 
-use crate::{utils::{compare_headers, find_index_by_windowing}, file_types::FileTypeInfo};
+use ordinal::Ordinal;
 
-const BUFFER_SIZE: usize = 1024 * 1;
+use crate::{
+    file_types::FileTypeInfo,
+    utils::{compare_headers, find_index_by_windowing},
+};
+
+const BUFFER_SIZE: usize = 1024 * 2;
 
 pub fn start_recover(device: String, recover_type: FileTypeInfo, output: String) {
-    sudo::escalate_if_needed().unwrap();
     let now = Instant::now();
     DirBuilder::new()
         .recursive(true)
@@ -16,24 +24,43 @@ pub fn start_recover(device: String, recover_type: FileTypeInfo, output: String)
 
     let mut recovered_count = 0;
     while let Ok(_) = f.read_exact(&mut buf) {
-        if let Some(pos) = compare_headers(&buf, &recover_type.header) {
-            println!("pos = {}", pos);
-            // println!("{:X?} pattern found", buf);
-            let mut fnew = File::create(format!(
-                "{}/recovered-{}.{}",
-                output,recovered_count, recover_type.ext
-            ))
-            .unwrap();
-            fnew.write_all(&buf[pos..]).unwrap();
-            while let Ok(_) = f.read_exact(&mut buf) {
-                if let Some(pos) = find_index_by_windowing(&buf, &recover_type.end) {
-                    fnew.write_all(&buf[..pos + recover_type.end.len()]).unwrap();
-                    println!("File recovered in {:.2?}", now.elapsed());
-                    recovered_count += 1;
-                    break;
-                }
-                fnew.write_all(&buf).unwrap();
+        if let Some(_start_index) = compare_headers(&buf, &recover_type.header) {
+            recover_file(&f, buf, &recover_type, &output, recovered_count);
+            recovered_count += 1;
+            println!(
+                "Recovered {} file at {:.2?}",
+                Ordinal(recovered_count),
+                now.elapsed()
+            );
+        }
+    }
+}
+
+fn recover_file(
+    mut f: &File,
+    current_buf: [u8; BUFFER_SIZE],
+    file_type: &FileTypeInfo,
+    output: &str,
+    recovered_count: usize,
+) {
+    let mut recovered_file = File::create(format!(
+        "{}/recovered-{}.{}",
+        output, recovered_count, file_type.ext
+    ))
+    .unwrap();
+    let mut buf: [u8; BUFFER_SIZE] = current_buf;
+    loop {
+        match find_index_by_windowing(&buf, &file_type.end) {
+            None => {
+                recovered_file.write_all(&buf).unwrap();
+            }
+            Some(end_index) => {
+                recovered_file
+                    .write_all(&buf[..end_index + file_type.end.len()])
+                    .unwrap();
+                return;
             }
         }
+        f.read_exact(&mut buf).unwrap();
     }
 }
