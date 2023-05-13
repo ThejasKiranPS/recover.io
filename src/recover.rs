@@ -2,6 +2,8 @@ use std::{time::Instant, fs::{DirBuilder, File}, io::{Read, Write}};
 
 use crate::{utils::{compare_headers, find_index_by_windowing}, file_types::FileTypeInfo};
 
+const BUFFER_SIZE: usize = 1024 * 1;
+
 pub fn start_recover(device: String, recover_type: FileTypeInfo, output: String) {
     sudo::escalate_if_needed().unwrap();
     let now = Instant::now();
@@ -10,7 +12,7 @@ pub fn start_recover(device: String, recover_type: FileTypeInfo, output: String)
         .create("recovered_files")
         .unwrap();
     let mut f = File::open(device).unwrap();
-    let mut buf = [0u8; 1024 * 16];
+    let mut buf = [0u8; BUFFER_SIZE];
 
     let mut recovered_count = 0;
     while let Ok(_) = f.read_exact(&mut buf) {
