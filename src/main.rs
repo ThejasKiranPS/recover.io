@@ -1,13 +1,12 @@
 use std::{
-    fs::{read, File},
-    io::{BufRead, BufReader, Read, Write},
+    fs::{File, DirBuilder},
+    io::{Read, Write},
     process::exit,
     time::Instant,
 };
 //import fat32 module
 mod fat32;
 mod file_types;
-use fat32::read_cluster_size;
 
 use crate::file_types::{get_file_type, FileType};
 fn main() {
@@ -15,6 +14,9 @@ fn main() {
     sudo::escalate_if_needed().unwrap();
     let now = Instant::now();
     let _usb = "/dev/sdd";
+    DirBuilder::new()
+        .recursive(true)
+        .create("recovered_files").unwrap();
     let mut f = File::open(_usb).unwrap();
     let mut buf = [0u8; 4096];
 
@@ -28,7 +30,7 @@ fn main() {
         if let Some(pos) = compare_headers(&buf, &recover_type.header) {
             println!("pos = {}", pos);
             // println!("{:X?} pattern found", buf);
-            let mut fnew = File::create(format!("recovered-{}.png", recovered_count)).unwrap();
+            let mut fnew = File::create(format!("recovered_files/recovered-{}.png", recovered_count)).unwrap();
             fnew.write_all(&buf[pos..]).unwrap();
             while let Ok(_) = f.read_exact(&mut buf) {
                 if let Some(pos) = find_index_by_windowing(&buf, &recover_type.end) {
