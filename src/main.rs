@@ -4,38 +4,34 @@ use std::{
     process::exit,
     time::Instant,
 };
+//import fat32 module
+mod fat32;
+mod file_types;
+use fat32::read_cluster_size;
+
+use crate::file_types::{get_file_type, FileType};
 fn main() {
+
     sudo::escalate_if_needed().unwrap();
     let now = Instant::now();
-    let _crab = "./crab.jpg";
     let _usb = "/dev/sdd";
     let mut f = File::open(_usb).unwrap();
-    let mut buf = [0u8; 256];
-    let mut jpg_headers = [0u8; 8];
-    let mut jpg_end = [0u8; 2];
-    let mut png_headers = [0u8; 8];
-    let mut png_end = [0u8; 4];
+    let mut buf = [0u8; 4096];
 
-    hex::decode_to_slice("FFD8FFe000104A46", &mut jpg_headers).unwrap();
-    hex::decode_to_slice("FFD9", &mut jpg_end).unwrap();
-    hex::decode_to_slice("89504E470D0A1A0A", &mut png_headers).unwrap();
-    hex::decode_to_slice("49454E44", &mut png_end).unwrap();
+    let jpg = get_file_type(FileType::JPG);
+    let png = get_file_type(FileType::PNG);
 
-    let header = png_headers;
-    let end = png_end;
+    let recover_type = png;
 
     let mut recovered_count = 0;
     while let Ok(_) = f.read_exact(&mut buf) {
-        if !buf.contains(&header[2]) {
-            continue;
-        }
-        if let Some(pos) = compare_headers(&buf, &header) {
+        if let Some(pos) = compare_headers(&buf, &recover_type.header) {
             println!("pos = {}", pos);
             // println!("{:X?} pattern found", buf);
             let mut fnew = File::create(format!("recovered-{}.png", recovered_count)).unwrap();
             fnew.write_all(&buf[pos..]).unwrap();
             while let Ok(_) = f.read_exact(&mut buf) {
-                if let Some(pos) = find_index_by_windowing(&buf, &end) {
+                if let Some(pos) = find_index_by_windowing(&buf, &recover_type.end) {
                     fnew.write_all(&buf[..pos + 2]).unwrap();
                     println!("File recovered in {:.2?}", now.elapsed());
                     recovered_count += 1;
