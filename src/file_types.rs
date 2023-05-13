@@ -26,7 +26,6 @@ impl Clone for FileType {
     }
 }
 
-
 impl From<String> for FileType {
     fn from(file_type: String) -> Self {
         match file_type.as_str() {
@@ -56,7 +55,11 @@ impl From<FileType> for FileTypeInfo {
 
 impl std::fmt::Debug for FileTypeInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{ header: {:?}, end: {:?}, ext: {} }}", self.header, self.end, self.ext)
+        write!(
+            f,
+            "{{ header: {:?}, end: {:?}, ext: {} }}",
+            self.header, self.end, self.ext
+        )
     }
 }
 

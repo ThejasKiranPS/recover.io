@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::file_types::{FileTypeInfo};
+use crate::file_types::FileTypeInfo;
 
 #[derive(Parser, Debug)]
 #[clap(name = "recover.io", version = "0.0.1")]

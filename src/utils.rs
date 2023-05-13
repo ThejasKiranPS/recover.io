@@ -1,11 +1,7 @@
 use std::fs::DirBuilder;
 
-
 pub fn create_dir(path: &str) {
-    DirBuilder::new()
-        .recursive(true)
-        .create(path)
-        .unwrap();
+    DirBuilder::new().recursive(true).create(path).unwrap();
 }
 
 pub fn create_dir_or_default(path: Option<String>) -> String {
@@ -44,7 +40,7 @@ mod tests {
     #[test]
     fn test_compare_headers() {
         let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let sub_arr = [1,2,3];
+        let sub_arr = [1, 2, 3];
 
         assert!(compare_headers(&arr, &sub_arr) == Some(0))
     }

@@ -1,22 +1,20 @@
-use std::{
-    path::Path, process::exit,
-};
+use std::{path::Path, process::exit};
 //import fat32 module
-mod file_types;
 mod cli;
-mod utils;
+mod file_types;
 mod format;
 mod recover;
+mod utils;
 
-use crate::{utils::create_dir_or_default};
-use cli::CliArgs;
+use crate::utils::create_dir_or_default;
 use clap::Parser;
+use cli::CliArgs;
 use format::start_format;
 use recover::start_recover;
 
 fn main() {
     let args: CliArgs = CliArgs::parse();
-    
+
     // check if device exists
     let device = args.device;
     if !Path::new(&device).exists() {
