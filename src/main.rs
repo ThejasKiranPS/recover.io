@@ -24,6 +24,8 @@ fn main() {
         exit(1);
     }
 
+    // Get root privileges
+    sudo::escalate_if_needed().unwrap();
     match args.subcmd {
         cli::Commands::Recover { output, file_type } => {
             let output_path = create_dir_or_default(output);
