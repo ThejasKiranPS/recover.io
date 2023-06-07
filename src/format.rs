@@ -36,12 +36,13 @@ fn format_device(device: String) {
 }
 
 fn zero_fill_disk(device: String) {
-    let mut format_command = std::process::Command::new("cat");
-    format_command.arg("/dev/zero").arg(">").arg(device);
-
+    let mut format_command = std::process::Command::new("dd");
     format_command
+        .arg("if=/dev/zero")
+        .arg("of=".to_owned() + &device)
+        .arg("bs=1M")
         .spawn()
-        .expect("Failed to execute command")
+        .expect("Failed to format disk")
         .wait()
-        .expect("Failed to wait for command");
+        .expect("Failed to format disk");
 }
