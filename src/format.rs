@@ -10,6 +10,12 @@ pub fn start_format(device: String, no_confirm: bool) {
             .interact()
             .unwrap()
         {
+            println!("Type 'CTRL + C' to cancel operation");
+            for i in (0..11).rev() {
+                print!("FORMATTING {} IN -> {} \r", device, i);
+                io::stdout().flush().unwrap();
+                std::thread::sleep(std::time::Duration::from_secs(1));
+            }
             format_device(device);
         } else {
             println!("Operation cancelled");
@@ -23,12 +29,6 @@ pub fn start_format(device: String, no_confirm: bool) {
 }
 
 fn format_device(device: String) {
-    println!("Type 'CTRL + C' to cancel operation");
-    for i in (0..11).rev() {
-        print!("FORMATTING {} IN -> {} \r", device, i);
-        io::stdout().flush().unwrap();
-        std::thread::sleep(std::time::Duration::from_secs(1));
-    }
     println!("Formatting disk... Please be patient. This may take a while");
     zero_fill_disk(device);
     println!("Disk formatted successfully");
