@@ -30,8 +30,8 @@ fn main() {
             start_recover(device, file_type, output_path);
         }
 
-        cli::Commands::Format => {
-            start_format(device);
+        cli::Commands::Format {talk_to_the_hand} => {
+            start_format(device, talk_to_the_hand);
         }
     }
 }

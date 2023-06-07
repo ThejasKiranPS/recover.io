@@ -25,5 +25,9 @@ pub enum Commands {
         file_type: FileTypeInfo,
     },
     /// Format Securely
-    Format,
+    Format {
+        /// Do not prompt for confirmation. Burn it all to the ground.
+        #[clap(long)]
+        talk_to_the_hand: bool,
+    },
 }
